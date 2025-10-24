@@ -9,7 +9,7 @@ import numpy as np
 
 from utils.direction import Direction
 from utils.utils import is_position_valid, is_collision
-from reward import Reward
+from environment.reward import Reward
 
 
 class Environment(gym.Env):
@@ -23,19 +23,15 @@ class Environment(gym.Env):
         self.food.reset_position(invalid_position=self.snake.position)
         self.obs = self.__get_obs()
         self.done = False
-        print(self.snake.position)
 
     def step(self, action):
         reward = Reward(env=self)
         reward_value = reward.reward_value(action)
         self.snake.update_direction(action)
         self.snake.move(self.food)
-        if self.snake.is_alive():
-            self.obs = self.__get_obs()
-        else:
+        if not self.snake.is_alive():
             self.done = True
-            self.obs = self.reset()
-        self.render()
+        self.obs = self.__get_obs()
         return self.obs, reward_value, self.done
 
     def reset(self, seed=None, options=None):
@@ -121,10 +117,3 @@ class Food:
             np.random.randint(self.grid_size[1])
         ])
 
-if __name__ == "__main__":
-    env = Environment(grid_size=(10, 10))
-    while True:
-        action = input()
-        if action == 'exit':
-            break
-        env.step(int(action))

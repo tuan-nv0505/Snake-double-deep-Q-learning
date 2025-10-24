@@ -1,6 +1,5 @@
 import numpy as np
 
-
 def is_collision(position_1, position_2):
     position_1 = np.array(position_1)
     position_2 = np.array(position_2)
