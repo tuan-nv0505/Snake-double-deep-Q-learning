@@ -21,21 +21,24 @@ EPSILON_END = 0.05
 EPSILON_DECAY = 0.995
 GAMMA = 0.99
 LR = 0.0005
-MEMORY_SIZE = 10000
+MEMORY_SIZE = 50000
 BATCH_SIZE = 64
 TARGET_UPDATE_FREQ = 20
 
-def select_action(state, policy_net, epsilon):
+def select_action(state, agent, epsilon):
     if np.random.rand() < epsilon:
         return np.random.randint(3)
     else:
         with torch.no_grad():
-            q_values = policy_net(state.unsqueeze(0))
+            q_values = agent(state.unsqueeze(0))
             return torch.argmax(q_values).item()
 
 def main():
-    env = Environment(GRID_SIZE)
+    env = Environment(GRID_SIZE, EPSILON_START)
     policy_net = DeepQNetwork(3)
+    path_check_point = Path('agent/double_dqn_snake.pth')
+    if path_check_point.exists():
+        policy_net.load_state_dict(torch.load(str(path_check_point)))
     target_net = DeepQNetwork(3)
     target_net.load_state_dict(policy_net.state_dict())
     target_net.eval()
@@ -51,8 +54,7 @@ def main():
         state = transforms(env.reset())
         done = False
         total_reward = 0
-        total_loss = []
-        score = 0
+        total_loss = 0
 
         while not done:
             action = select_action(state, policy_net, epsilon)
@@ -86,11 +88,10 @@ def main():
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-                with torch.no_grad():
-                    total_loss.append(loss.item())
 
         # Epsilon decay
         epsilon = max(EPSILON_END, epsilon * EPSILON_DECAY)
+        env.epsilon = epsilon
 
         # Update target network
         if episode % TARGET_UPDATE_FREQ == 0:

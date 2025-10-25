@@ -13,25 +13,26 @@ from environment.reward import Reward
 
 
 class Environment(gym.Env):
-    def __init__(self, grid_size):
+    def __init__(self, grid_size, epsilon):
         super().__init__()
         self.grid_size = grid_size
+        self.epsilon = epsilon
         self.action_space = spaces.Discrete(3)
         self.observation_space = spaces.Box(low=0, high=255, shape=(grid_size[0], grid_size[1], 3), dtype=np.uint8)
         self.snake = Snake(grid_size)
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
-        self.obs = self.__get_obs()
+        self.obs = self.get_obs()
         self.done = False
 
     def step(self, action):
-        reward = Reward(env=self)
+        reward = Reward(env=self, epsilon=self.epsilon)
         reward_value = reward.reward_value(action)
         self.snake.update_direction(action)
         self.snake.move(self.food)
         if not self.snake.is_alive():
             self.done = True
-        self.obs = self.__get_obs()
+        self.obs = self.get_obs()
         return self.obs, reward_value, self.done
 
     def reset(self, seed=None, options=None):
@@ -39,13 +40,13 @@ class Environment(gym.Env):
         self.snake.reset()
         self.food.reset_position(invalid_position=self.snake.position)
         self.done = False
-        return self.__get_obs()
+        return self.get_obs()
 
     def render(self):
         print(self.obs[:, :, 0] + self.obs[:, :, 1] + self.obs[:, :, 2])
 
 
-    def __get_obs(self):
+    def get_obs(self):
         obs = np.zeros((*self.grid_size, 3), dtype=np.uint8)
         if self.snake.is_alive():
             obs[self.snake.head[0], self.snake.head[1], 0] = 255
@@ -77,8 +78,9 @@ class Snake:
         self.head = self.position[0]
         if is_collision(self.head, food.position):
             food.reset_position(invalid_position=self.position)
-        else:
-            self.position = self.position[:-1, :]
+            return True
+        self.position = self.position[:-1, :]
+        return False
 
     def update_direction(self, action):
         self.direction = Direction((self.direction.value + action - 1 + len(Direction)) % len(Direction))

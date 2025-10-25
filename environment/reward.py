@@ -5,8 +5,9 @@ import numpy as np
 
 
 class Reward:
-    def __init__(self, env):
+    def __init__(self, env, epsilon):
         self.env = env
+        self.epsilon = epsilon
 
     def eaten(self, action, reward_value):
         if is_collision(self.__snake_by_action(action)[0], self.env.food.position):
@@ -19,6 +20,14 @@ class Reward:
         if is_collision(head, body) or not is_position_valid(head, self.env.grid_size):
             return reward_value
         return 0
+
+    def reward_by_distance_delta(self, action, reward_value):
+        snake_by_action = self.__snake_by_action(action)
+        old_distance = abs(self.env.snake.position[0][0] - self.env.food.position[0]) + abs(self.env.snake.position[0][1] - self.env.food.position[1])
+        new_distance = abs(snake_by_action[0][0] - self.env.food.position[0]) + abs(snake_by_action[0][1] - self.env.food.position[1])
+        if new_distance < old_distance:
+            return reward_value
+        return -reward_value
 
     def avoiding_imminent_danger(self, action, reward_value):
         snake_straight = self.__snake_by_action(1)  # 0:left, 1:straight, 2:right
@@ -40,7 +49,7 @@ class Reward:
     def moving_same_direction(self, action, reward_value):
         if action == 1:
             return reward_value
-        return 0
+        return -reward_value
 
     def move_not_safe(self, action, reward_value):
         snake_by_action = self.__snake_by_action(action)
@@ -74,9 +83,15 @@ class Reward:
         rw = 0
         rw += self.eaten(action, 100)
         rw += self.dead(action, -100)
-        rw += self.avoiding_imminent_danger(action, 2)
-        rw += self.moving_same_direction(action, 0.5)
-        rw += self.move_not_safe(action, -10)
+        rw += self.reward_by_distance_delta(action, 0.5)
+
+        if self.epsilon <= 0.3:
+            rw += self.avoiding_imminent_danger(action, 2)
+            rw += self.move_not_safe(action, -10)
+            rw -= 0.5
+
+        if self.epsilon <= 0.2:
+            rw += self.moving_same_direction(action, 0.5)
         return rw
 
     def __snake_by_action(self, action):
