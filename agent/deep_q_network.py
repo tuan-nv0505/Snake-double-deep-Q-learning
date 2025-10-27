@@ -3,34 +3,29 @@ from torch import nn
 class DeepQNetwork(nn.Module):
     def __init__(self, action_size):
         super().__init__()
-        self.conv_1 = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=6, kernel_size=5, stride=1, padding=2),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
+        self.conv1 = nn.Sequential(
+            nn.Conv2d(4, 32, 8, 4),
+            nn.LeakyReLU()
         )
-        self.conv_2 = nn.Sequential(
-            nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5, stride=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Sequential(
+            nn.Conv2d(32, 64, 4, 2),
+            nn.LeakyReLU()
         )
-        self.conv_3 = nn.Sequential(
-            nn.Conv2d(in_channels=16, out_channels=120, kernel_size=5, stride=1),
-            nn.ReLU()
+        self.conv3 = nn.Sequential(
+            nn.Conv2d(64, 64, 3, 1),
+            nn.LeakyReLU()
         )
-
         self.fc = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(in_features=600, out_features=512),
-            nn.ReLU(),
-            nn.Linear(in_features=512, out_features=256),
-            nn.ReLU(),
-            nn.Linear(in_features=256, out_features=action_size)
+            nn.Linear(64 * 7 * 7, 512),
+            nn.LeakyReLU(),
+            nn.Linear(512, action_size)
         )
-
+        
     def forward(self, input):
-        output = self.conv_1(input)
-        output = self.conv_2(output)
-        output = self.conv_3(output)
-        output = self.fc(output)
+        input = self.conv1(input)
+        input = self.conv2(input)
+        input = self.conv3(input)
+        input = input.view(input.shape[0], -1)
+        output = self.fc(input)
         return output
 

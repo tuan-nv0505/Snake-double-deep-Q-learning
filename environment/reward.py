@@ -79,7 +79,7 @@ class Reward:
                         return 0
         return reward_value
 
-    def reward_value(self, action):
+    def get_reward(self, action):
         rw = 0
         rw += self.eaten(action, 100)
         rw += self.dead(action, -100)

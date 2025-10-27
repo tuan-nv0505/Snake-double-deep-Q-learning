@@ -1,4 +1,30 @@
 import numpy as np
+import argparse
+
+
+def arg_tuple(arg):
+    return tuple(map(int, arg.split(',')))
+
+def get_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--episodes', type=int, default=5000)
+    parser.add_argument('--epsilon_start', type=float, default=1.0)
+    parser.add_argument('--epsilon_end', type=float, default=0.05)
+    parser.add_argument('--epsilon_decay', type=float, default=0.995)
+    parser.add_argument('--gamma', type=float, default=0.99)
+    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--memory_replay', type=int, default=10000)
+    parser.add_argument('--batch', type=int, default=16)
+    parser.add_argument('--target_update', type=int, default=20)
+    parser.add_argument('--board_size', type=arg_tuple, default=(84, 84))
+    parser.add_argument('--cell_size', type=int, default=10)
+    parser.add_argument('--frame_size', type=int, default=4)
+    parser.add_argument('--logging', type=str, default='tensorboard')
+    parser.add_argument('--reset_logging', type=bool, default=True)
+    parser.add_argument('--reset_checkpoint', type=bool, default=False)
+
+    args = parser.parse_args()
+    return args
 
 def is_collision(position_1, position_2):
     position_1 = np.array(position_1)

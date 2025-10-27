@@ -44,3 +44,6 @@ Thumbs.db
 ehthumbs.db
 Icon?
 Desktop.ini
+
+tensorboard/
+checkpoint/

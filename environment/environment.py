@@ -10,15 +10,17 @@ import numpy as np
 from utils.direction import Direction
 from utils.utils import is_position_valid, is_collision
 from environment.reward import Reward
+from utils.utils import get_args
+import cv2
 
-
+args = get_args()
 class Environment(gym.Env):
     def __init__(self, grid_size, epsilon):
         super().__init__()
         self.grid_size = grid_size
         self.epsilon = epsilon
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=0, high=255, shape=(grid_size[0], grid_size[1], 3), dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=args.board_size, dtype=np.uint8)
         self.snake = Snake(grid_size)
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
@@ -27,13 +29,13 @@ class Environment(gym.Env):
 
     def step(self, action):
         reward = Reward(env=self, epsilon=self.epsilon)
-        reward_value = reward.reward_value(action)
+        reward_value = reward.get_reward(action)
         self.snake.update_direction(action)
-        self.snake.move(self.food)
+        score = self.snake.move(self.food)
         if not self.snake.is_alive():
             self.done = True
         self.obs = self.get_obs()
-        return self.obs, reward_value, self.done
+        return self.obs, reward_value, self.done, score
 
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
@@ -43,7 +45,7 @@ class Environment(gym.Env):
         return self.get_obs()
 
     def render(self):
-        print(self.obs[:, :, 0] + self.obs[:, :, 1] + self.obs[:, :, 2])
+        print(self.obs)
 
 
     def get_obs(self):
@@ -53,7 +55,8 @@ class Environment(gym.Env):
         for x, y in self.snake.position[1:]:
             obs[x, y, 1] = 255
         obs[self.food.position[0], self.food.position[1], 2] = 255
-        return obs
+        obs = cv2.cvtColor(obs, cv2.COLOR_BGR2GRAY) / 255
+        return obs.astype(np.float32)
 
 class Snake:
     def __init__(self, grid_size, position=None):
@@ -78,9 +81,9 @@ class Snake:
         self.head = self.position[0]
         if is_collision(self.head, food.position):
             food.reset_position(invalid_position=self.position)
-            return True
+            return 1
         self.position = self.position[:-1, :]
-        return False
+        return 0
 
     def update_direction(self, action):
         self.direction = Direction((self.direction.value + action - 1 + len(Direction)) % len(Direction))
@@ -92,6 +95,7 @@ class Snake:
             (self.head[0], self.head[1] - 1),
             (self.head[0], self.head[1] - 2),
         ])
+        self.direction = Direction.RIGHT
 
 class Food:
     def __init__(self, grid_size):
@@ -118,4 +122,3 @@ class Food:
             np.random.randint(self.grid_size[0]),
             np.random.randint(self.grid_size[1])
         ])
-

@@ -8,20 +8,21 @@ sys.path.append(str(ROOT_DIR))
 
 from agent.deep_q_network import DeepQNetwork
 import pygame
-from utils.settings import GRID_SIZE, CELL_SIZE
+from utils.utils import get_args
 from environment.environment import Environment
 import numpy as np
 import torch
 from torchvision.transforms import ToTensor
 import sys
 
+args = get_args()
 class Game:
     def __init__(self, fps, env: Environment):
         pygame.init()
         self.fps = fps
         self.env = env
-        self.width = self.env.grid_size[1] * CELL_SIZE
-        self.height = self.env.grid_size[0] * CELL_SIZE
+        self.width = self.env.grid_size[1] * args.cell_size
+        self.height = self.env.grid_size[0] * args.cell_sizeL
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("assets/PressStart2P-Regular.ttf", 25)
@@ -54,7 +55,8 @@ class Game:
                     self.env.step(action)
                     self.draw()
             else:
-                state = ToTensor()(self.env.reset())
+                frame = self.env.reset()
+
                 while not self.env.done:
                     with torch.no_grad():
                         q_values = agent(state.unsqueeze(0))
@@ -68,24 +70,24 @@ class Game:
     def draw(self):
         # Draw snake
         for element in self.env.snake.position:
-            y, x = element * CELL_SIZE
-            pygame.draw.rect(self.screen, (255, 0, 0), (x, y, CELL_SIZE, CELL_SIZE))
-            pygame.draw.rect(self.screen, (255, 255, 255), (x, y, CELL_SIZE, CELL_SIZE), 1)
+            y, x = element * args.cell_size
+            pygame.draw.rect(self.screen, (255, 0, 0), (x, y, args.cell_size, args.cell_size))
+            pygame.draw.rect(self.screen, (255, 255, 255), (x, y, args.cell_size, args.cell_size), 1)
 
         # Draw food
         if not self.scale_food:
-            y, x = self.env.food.position * CELL_SIZE
+            y, x = self.env.food.position * args.cell_size
             pygame.draw.rect(
                 self.screen, (255, 255, 0),
-                (x, y, CELL_SIZE, CELL_SIZE),
+                (x, y, args.cell_size, args.cell_size),
                 border_radius=15
             )
             self.scale_food = True
         else:
-            y, x = self.env.food.position * CELL_SIZE
+            y, x = self.env.food.position * args.cell_size
             pygame.draw.rect(
                 self.screen, (255, 255, 0),
-                (*(np.array([x, y]) + np.array([5, 5])), CELL_SIZE - 10, CELL_SIZE - 10),
+                (*(np.array([x, y]) + np.array([5, 5])), args.cell_size - 10, args.cell_size - 10),
                 border_radius=15
             )
             self.scale_food = False
@@ -99,7 +101,10 @@ class Game:
         self.screen.fill((0, 0, 0))
 
 if __name__ == '__main__':
-    agent = DeepQNetwork(3)
-    agent.load_state_dict(torch.load('agent/double_dqn_snake.pth'))
-    game = Game(fps=30, env=Environment(GRID_SIZE, 0))
+    agent = None
+    path_checkpoint = 'agent/double_dqn_snake.pth'
+    if Path.exists(Path(path_checkpoint)):
+        agent = DeepQNetwork(3)
+        agent.load_state_dict(torch.load(path_checkpoint))
+    game = Game(fps=30, env=Environment(args.board_size, 0))
     game.play(agent=agent)

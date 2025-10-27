@@ -1,4 +1,0 @@
-
-
-GRID_SIZE = (28, 44)
-CELL_SIZE = 30
