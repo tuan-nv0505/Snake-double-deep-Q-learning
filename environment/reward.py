@@ -88,13 +88,11 @@ class Reward:
         rw += self.reward_by_distance_delta(action, 1)
 
         if self.epsilon <= 0.3:
-<<<<<<< HEAD
             rw += self.avoiding_imminent_danger(action, 2)
             rw += self.move_not_safe(action, -10)
-=======
+
             rw += self.avoiding_imminent_danger(action, 3)
             rw += self.move_not_safe(action, -50)
->>>>>>> 7620956 (update)
 
         if self.epsilon <= 0.2:
             rw += self.moving_same_direction(action, 1.5)
