@@ -19,17 +19,20 @@ from torch.utils.tensorboard import SummaryWriter
 
 def select_action(state, agent, epsilon):
     if np.random.rand() < epsilon:
-        return np.random.randint(3)
+        action = np.random.randint(3)
+        return action
     else:
         with torch.no_grad():
             q_values = agent(state.unsqueeze(0))
-            return torch.argmax(q_values).item()
+            action = torch.argmax(q_values).item()
+            return action
 
 def main(args):
+    env = Environment(args.grid_size, args.epsilon_start)
+
     if os.path.exists('checkpoint') and args.reset_checkpoint:
         shutil.rmtree('checkpoint')
 
-    env = Environment(args.board_size, args.epsilon_start)
     policy_net = DeepQNetwork(3)
     if os.path.exists('checkpoint/snake_dqn.pth'):
         policy_net.load_state_dict(torch.load('checkpoint/snake_dqn.pth'))
@@ -80,17 +83,20 @@ def main(args):
                 next_state_batch = torch.stack(next_state_batch)
 
                 q_values = policy_net(state_batch).gather(1, action_batch)
-                next_action_batch = torch.argmax(policy_net(next_state_batch), dim=1, keepdim=True)
-                next_q_values = target_net(next_state_batch).gather(1, next_action_batch)
-
                 with torch.no_grad():
-                    # Q_target = r + γ * Q_target_net(s', a')
+                    next_action_batch = torch.argmax(policy_net(next_state_batch), dim=1, keepdim=True)
+                    next_q_values = target_net(next_state_batch).gather(1, next_action_batch)
+                    # Q_target = r + gamma * Q_target_net(s', a')
                     targets = reward_batch + (1 - done_batch) * args.gamma * next_q_values
 
                 loss = criterion(q_values, targets)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
+
+                with torch.no_grad():
+                    for t_param, p_param in zip(target_net.parameters(), policy_net.parameters()):
+                        t_param.data.copy_(t_param.data * args.tau + p_param.data * (1.0 - args.tau))
 
                 writer.add_scalar('Replay Memory/Loss', loss.item(), num_batches)
 
@@ -108,7 +114,7 @@ def main(args):
             next_action = torch.argmax(policy_net(next_state), dim=1, keepdim=True)
             next_q_values = target_net(next_state).gather(1, next_action)
 
-            # Q_target = r + γ * Q_target_net(s', a')
+            # Q_target = r + gamma * Q_target_net(s', a')
             targets = reward + (1 - done) * args.gamma * next_q_values
             loss = criterion(q_values, targets)
 
@@ -120,9 +126,6 @@ def main(args):
         print(f"[{episode + 1}][{args.episodes}] | Epsilon: {epsilon} | Loss: {loss.item():.2f} | Reward: {total_reward} | Score: {total_score}")
         epsilon = max(args.epsilon_end, epsilon * args.epsilon_decay)
         env.epsilon = epsilon
-
-        if episode % args.target_update == 0:
-            target_net.load_state_dict(policy_net.state_dict())
 
         if not os.path.exists('checkpoint'):
             os.mkdir('checkpoint')

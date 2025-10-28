@@ -1,3 +1,4 @@
+from collections import deque
 from pathlib import Path
 import sys
 
@@ -22,7 +23,7 @@ class Game:
         self.fps = fps
         self.env = env
         self.width = self.env.grid_size[1] * args.cell_size
-        self.height = self.env.grid_size[0] * args.cell_sizeL
+        self.height = self.env.grid_size[0] * args.cell_size
         self.screen = pygame.display.set_mode((self.width, self.height))
         self.clock = pygame.time.Clock()
         self.font = pygame.font.Font("assets/PressStart2P-Regular.ttf", 25)
@@ -56,12 +57,15 @@ class Game:
                     self.draw()
             else:
                 frame = self.env.reset()
+                stack_frames = deque([torch.from_numpy(frame)] * args.frame_size, maxlen=args.frame_size)
 
                 while not self.env.done:
                     with torch.no_grad():
+                        state = torch.stack(list(stack_frames))
                         q_values = agent(state.unsqueeze(0))
                         action = torch.argmax(q_values).item()
-                        state = ToTensor()(self.env.step(action)[0])
+                        next_frame = self.env.step(action)[0]
+                        stack_frames.append(torch.from_numpy(next_frame))
                         self.draw()
         pygame.quit()
         sys.exit()
@@ -101,10 +105,12 @@ class Game:
         self.screen.fill((0, 0, 0))
 
 if __name__ == '__main__':
+    path_checkpoint = 'checkpoint/best_snake_dql.pth'
     agent = None
-    path_checkpoint = 'agent/double_dqn_snake.pth'
     if Path.exists(Path(path_checkpoint)):
+        print('Load file snake_dqn.pth successfully. Start evaluating...')
         agent = DeepQNetwork(3)
         agent.load_state_dict(torch.load(path_checkpoint))
-    game = Game(fps=30, env=Environment(args.board_size, 0))
+
+    game = Game(fps=30, env=Environment(args.grid_size, 0))
     game.play(agent=agent)

@@ -44,6 +44,8 @@ class Reward:
 
         if danger_ahead and safe_action:
             return reward_value
+        elif danger_ahead and not safe_action:
+            return -reward_value
         return 0
 
     def moving_same_direction(self, action, reward_value):

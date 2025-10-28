@@ -20,7 +20,7 @@ class Environment(gym.Env):
         self.grid_size = grid_size
         self.epsilon = epsilon
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=0, high=255, shape=args.board_size, dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=args.grid_size, dtype=np.uint8)
         self.snake = Snake(grid_size)
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
@@ -46,7 +46,6 @@ class Environment(gym.Env):
 
     def render(self):
         print(self.obs)
-
 
     def get_obs(self):
         obs = np.zeros((*self.grid_size, 3), dtype=np.uint8)
