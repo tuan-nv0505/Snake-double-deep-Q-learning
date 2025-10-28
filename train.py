@@ -86,7 +86,6 @@ def main(args):
                 with torch.no_grad():
                     next_action_batch = torch.argmax(policy_net(next_state_batch), dim=1, keepdim=True)
                     next_q_values = target_net(next_state_batch).gather(1, next_action_batch)
-                    # Q_target = r + gamma * Q_target_net(s', a')
                     targets = reward_batch + (1 - done_batch) * args.gamma * next_q_values
 
                 loss = criterion(q_values, targets)
@@ -113,8 +112,6 @@ def main(args):
             q_values = policy_net(state).gather(1, action)
             next_action = torch.argmax(policy_net(next_state), dim=1, keepdim=True)
             next_q_values = target_net(next_state).gather(1, next_action)
-
-            # Q_target = r + gamma * Q_target_net(s', a')
             targets = reward + (1 - done) * args.gamma * next_q_values
             loss = criterion(q_values, targets)
 

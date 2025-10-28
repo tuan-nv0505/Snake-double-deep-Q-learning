@@ -12,19 +12,21 @@ class Reward:
     def eaten(self, action, reward_value):
         if is_collision(self.__snake_by_action(action)[0], self.env.food.position):
             return reward_value
-        return 0
+        return -0.5
 
     def dead(self, action, reward_value):
         snake_by_action = self.__snake_by_action(action)
         head, body = snake_by_action[0], snake_by_action[1:]
         if is_collision(head, body) or not is_position_valid(head, self.env.grid_size):
-            return reward_value
+            return -reward_value
         return 0
 
     def reward_by_distance_delta(self, action, reward_value):
         snake_by_action = self.__snake_by_action(action)
-        old_distance = abs(self.env.snake.position[0][0] - self.env.food.position[0]) + abs(self.env.snake.position[0][1] - self.env.food.position[1])
-        new_distance = abs(snake_by_action[0][0] - self.env.food.position[0]) + abs(snake_by_action[0][1] - self.env.food.position[1])
+        old_head = self.env.snake.position[0]
+        new_head = snake_by_action[0]
+        old_distance = abs(old_head[0] - self.env.food.position[0]) + abs(old_head[1] - self.env.food.position[1])
+        new_distance = abs(new_head[0] - self.env.food.position[0]) + abs(new_head[1] - self.env.food.position[1])
         if new_distance < old_distance:
             return reward_value
         return -reward_value
@@ -81,7 +83,7 @@ class Reward:
                         return 0
         return reward_value
 
-    def get_reward(self, action):
+    def __call__(self, action):
         rw = 0
         rw += self.eaten(action, 100)
         rw += self.dead(action, -100)
@@ -90,7 +92,6 @@ class Reward:
         if self.epsilon <= 0.3:
             rw += self.avoiding_imminent_danger(action, 2)
             rw += self.move_not_safe(action, -10)
-            rw -= 0.5
 
         if self.epsilon <= 0.2:
             rw += self.moving_same_direction(action, 0.5)

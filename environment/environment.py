@@ -29,7 +29,7 @@ class Environment(gym.Env):
 
     def step(self, action):
         reward = Reward(env=self, epsilon=self.epsilon)
-        reward_value = reward.get_reward(action)
+        reward_value = reward(action)
         self.snake.update_direction(action)
         score = self.snake.move(self.food)
         if not self.snake.is_alive():
