@@ -1,4 +1,3 @@
-import argparse
 from pathlib import Path
 import sys
 ROOT_DIR = Path(__file__).resolve().parent
@@ -28,18 +27,19 @@ def select_action(state, agent, epsilon):
             return action
 
 def main(args):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     env = Environment(args.grid_size, args.epsilon_start)
 
     if os.path.exists('checkpoint') and args.reset_checkpoint:
         shutil.rmtree('checkpoint')
 
-    policy_net = DeepQNetwork(3)
+    policy_net = DeepQNetwork(3).to(device)
     if os.path.exists('checkpoint/snake_dqn.pth'):
         policy_net.load_state_dict(torch.load('checkpoint/snake_dqn.pth'))
         print('Load file snake_dqn.pth successfully. Continue training.')
     else:
         print('Load file snake_dqn.pth failed.')
-    target_net = DeepQNetwork(3)
+    target_net = DeepQNetwork(3).to(device)
     target_net.load_state_dict(policy_net.state_dict())
 
     criterion = nn.MSELoss()
@@ -56,7 +56,7 @@ def main(args):
     num_batches = 0
     for episode in range(args.episodes):
         frame = env.reset()
-        stack_frames = deque([torch.from_numpy(frame)] * args.frame_size, maxlen=args.frame_size)
+        stack_frames = deque([torch.from_numpy(frame).to(device)] * args.frame_size, maxlen=args.frame_size)
         memory_episode = []
 
         while not env.done:
@@ -64,7 +64,7 @@ def main(args):
 
             action = select_action(state, policy_net, epsilon)
             next_frame, reward, done, score = env.step(action)
-            stack_frames.append(torch.from_numpy(next_frame))
+            stack_frames.append(torch.from_numpy(next_frame).to(device))
 
             next_state = torch.stack(list(stack_frames))
 
@@ -77,9 +77,9 @@ def main(args):
                 state_batch, action_batch, reward_batch, done_batch, next_state_batch = zip(*batch)
 
                 state_batch = torch.stack(state_batch)
-                action_batch = torch.tensor(action_batch).unsqueeze(1)
-                reward_batch = torch.tensor(reward_batch).unsqueeze(1)
-                done_batch = torch.tensor(tuple(map(int, done_batch))).unsqueeze(1)
+                action_batch = torch.tensor(action_batch).unsqueeze(1).to(device)
+                reward_batch = torch.tensor(reward_batch).unsqueeze(1).to(device)
+                done_batch = torch.tensor(tuple(map(int, done_batch))).unsqueeze(1).to(device)
                 next_state_batch = torch.stack(next_state_batch)
 
                 q_values = policy_net(state_batch).gather(1, action_batch)
@@ -103,9 +103,9 @@ def main(args):
         total_reward = sum(reward)
         total_score = sum(score)
         state = torch.stack(state)
-        action = torch.tensor(action).unsqueeze(1)
-        reward = torch.tensor(reward).unsqueeze(1)
-        done = torch.tensor(tuple(map(int, done))).unsqueeze(1)
+        action = torch.tensor(action).unsqueeze(1).to(device)
+        reward = torch.tensor(reward).unsqueeze(1).to(device)
+        done = torch.tensor(tuple(map(int, done))).unsqueeze(1).to(device)
         next_state = torch.stack(next_state)
 
         with torch.no_grad():

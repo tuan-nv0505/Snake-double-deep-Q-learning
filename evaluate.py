@@ -1,19 +1,17 @@
+import os.path
 from collections import deque
 from pathlib import Path
 import sys
-
-from utils.direction import Direction
-
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(ROOT_DIR))
 
+from utils.direction import Direction
 from agent.deep_q_network import DeepQNetwork
 import pygame
 from utils.utils import get_args
 from environment.environment import Environment
 import numpy as np
 import torch
-from torchvision.transforms import ToTensor
 import sys
 
 args = get_args()
@@ -107,7 +105,7 @@ class Game:
 if __name__ == '__main__':
     path_checkpoint = 'checkpoint/best_snake_dql.pth'
     agent = None
-    if Path.exists(Path(path_checkpoint)):
+    if os.path.exists(path_checkpoint):
         print('Load file snake_dqn.pth successfully. Start evaluating...')
         agent = DeepQNetwork(3)
         agent.load_state_dict(torch.load(path_checkpoint))

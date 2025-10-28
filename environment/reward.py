@@ -46,8 +46,6 @@ class Reward:
 
         if danger_ahead and safe_action:
             return reward_value
-        elif danger_ahead and not safe_action:
-            return -reward_value
         return 0
 
     def moving_same_direction(self, action, reward_value):
@@ -87,14 +85,19 @@ class Reward:
         rw = 0
         rw += self.eaten(action, 100)
         rw += self.dead(action, -100)
-        rw += self.reward_by_distance_delta(action, 0.5)
+        rw += self.reward_by_distance_delta(action, 1)
 
         if self.epsilon <= 0.3:
+<<<<<<< HEAD
             rw += self.avoiding_imminent_danger(action, 2)
             rw += self.move_not_safe(action, -10)
+=======
+            rw += self.avoiding_imminent_danger(action, 3)
+            rw += self.move_not_safe(action, -50)
+>>>>>>> 7620956 (update)
 
         if self.epsilon <= 0.2:
-            rw += self.moving_same_direction(action, 0.5)
+            rw += self.moving_same_direction(action, 1.5)
         return rw
 
     def __snake_by_action(self, action):
