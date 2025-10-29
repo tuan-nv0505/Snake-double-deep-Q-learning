@@ -1,4 +1,7 @@
 from collections import deque
+
+from sympy.physics.paulialgebra import epsilon
+
 from utils.direction import Direction
 from utils.utils import is_collision, is_position_valid, position_neighbor
 import numpy as np
@@ -84,18 +87,15 @@ class Reward:
     def __call__(self, action):
         rw = 0
         rw += self.eaten(action, 100)
-        rw += self.dead(action, -100)
-        rw += self.reward_by_distance_delta(action, 1)
+        rw += self.dead(action, -(100 + 2.5 / self.epsilon))
+        rw += self.reward_by_distance_delta(action, 2)
 
         if self.epsilon <= 0.3:
-            rw += self.avoiding_imminent_danger(action, 2)
-            rw += self.move_not_safe(action, -10)
-
             rw += self.avoiding_imminent_danger(action, 3)
-            rw += self.move_not_safe(action, -50)
+            rw += self.move_not_safe(action, -(50 + 2.5 / self.epsilon))
 
         if self.epsilon <= 0.2:
-            rw += self.moving_same_direction(action, 1.5)
+            rw += self.moving_same_direction(action, 1)
         return rw
 
     def __snake_by_action(self, action):

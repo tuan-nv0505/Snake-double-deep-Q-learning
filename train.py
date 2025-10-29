@@ -26,7 +26,7 @@ def select_action(state, agent, epsilon):
             action = torch.argmax(q_values).item()
             return action
 
-def main(args):
+def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     env = Environment(args.grid_size, args.epsilon_start)
 
@@ -136,4 +136,4 @@ def main(args):
 
 if __name__ == '__main__':
     args = get_args()
-    main(args)
+    train(args)
