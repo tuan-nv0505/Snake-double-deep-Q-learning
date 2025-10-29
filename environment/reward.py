@@ -8,9 +8,8 @@ import numpy as np
 
 
 class Reward:
-    def __init__(self, env, epsilon):
+    def __init__(self, env):
         self.env = env
-        self.epsilon = epsilon
 
     def eaten(self, action, reward_value):
         if is_collision(self.__snake_by_action(action)[0], self.env.food.position):
@@ -84,17 +83,23 @@ class Reward:
                         return 0
         return reward_value
 
-    def __call__(self, action):
+    def __call__(self, action, epsilon):
         rw = 0
         rw += self.eaten(action, 100)
-        rw += self.dead(action, -(100 + 2.5 / self.epsilon))
+        rw += self.dead(action, -(100 + 2.5 / (epsilon + 1e-4)))
         rw += self.reward_by_distance_delta(action, 2)
 
-        if self.epsilon <= 0.3:
-            rw += self.avoiding_imminent_danger(action, 3)
-            rw += self.move_not_safe(action, -(50 + 2.5 / self.epsilon))
+        a = self.eaten(action, 100)
+        b = self.dead(action, -(100 + 2.5 / (epsilon + 1e-4)))
+        c = self.reward_by_distance_delta(action, 2)
+        if a > 0:
+            print(a, b, c, ' : ', a + b +c)
 
-        if self.epsilon <= 0.2:
+        if epsilon <= 0.3:
+            rw += self.avoiding_imminent_danger(action, 3)
+            rw += self.move_not_safe(action, -(50 + 2.5 / (epsilon + 1e-4)))
+
+        if epsilon <= 0.2:
             rw += self.moving_same_direction(action, 1)
         return rw
 

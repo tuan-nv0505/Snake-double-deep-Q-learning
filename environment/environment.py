@@ -28,8 +28,8 @@ class Environment(gym.Env):
         self.done = False
 
     def step(self, action):
-        reward = Reward(env=self, epsilon=self.epsilon)
-        reward_value = reward(action)
+        reward = Reward(env=self)
+        reward_value = reward(action, self.epsilon)
         self.snake.update_direction(action)
         score = self.snake.move(self.food)
         if not self.snake.is_alive():
@@ -54,8 +54,8 @@ class Environment(gym.Env):
         for x, y in self.snake.position[1:]:
             obs[x, y, 1] = 255
         obs[self.food.position[0], self.food.position[1], 2] = 255
-        obs = cv2.cvtColor(obs, cv2.COLOR_BGR2GRAY) / 255
-        return obs.astype(np.float32)
+        obs = cv2.cvtColor(obs, cv2.COLOR_BGR2GRAY)
+        return obs.astype(np.float32) / 255
 
 class Snake:
     def __init__(self, grid_size, position=None):

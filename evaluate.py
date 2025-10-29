@@ -10,6 +10,7 @@ from agent.deep_q_network import DeepQNetwork
 import pygame
 from utils.utils import get_args
 from environment.environment import Environment
+from train import select_action
 import numpy as np
 import torch
 import sys
@@ -60,8 +61,7 @@ class Game:
                 while not self.env.done:
                     with torch.no_grad():
                         state = torch.stack(list(stack_frames))
-                        q_values = agent(state.unsqueeze(0))
-                        action = torch.argmax(q_values).item()
+                        action = select_action(state, agent, 0)
                         next_frame = self.env.step(action)[0]
                         stack_frames.append(torch.from_numpy(next_frame))
                         self.draw()

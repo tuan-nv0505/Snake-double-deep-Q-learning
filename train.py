@@ -49,7 +49,7 @@ def train(args):
     epsilon = args.epsilon_start
     loss_min = sys.float_info.max
 
-    if os.path.exists(args.logging) and args.reset_logging:
+    if os.path.exists(args.logging):
         shutil.rmtree(args.logging)
     writer = SummaryWriter(args.logging)
 
@@ -127,11 +127,13 @@ def train(args):
         if not os.path.exists('checkpoint'):
             os.mkdir('checkpoint')
 
-        torch.save(policy_net.state_dict(), 'checkpoint/snake_dqn.pth')
+        if episode % 10 == 0 and episode != 0:
+            print('Save snake_dqn.pth.')
+            torch.save(policy_net.state_dict(), 'checkpoint/snake_dqn.pth')
         if loss.item() < loss_min:
             print('Update best checkpoint.')
             loss_min = loss.item()
-            torch.save(policy_net.state_dict(), 'checkpoint/best_snake_dql.pth')
+            torch.save(policy_net.state_dict(), 'checkpoint/best_snake_dqn.pth')
 
 
 if __name__ == '__main__':

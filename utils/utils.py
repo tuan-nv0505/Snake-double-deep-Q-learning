@@ -2,9 +2,6 @@ import numpy as np
 import argparse
 
 
-def arg_tuple(arg):
-    return tuple(map(int, arg.split(',')))
-
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--episodes', type=int, default=5000)
@@ -15,13 +12,12 @@ def get_args():
     parser.add_argument('--lr', type=float, default=1e-3)
     parser.add_argument('--memory_replay', type=int, default=50000)
     parser.add_argument('--batch', type=int, default=32)
-    parser.add_argument('--grid_size', type=arg_tuple, default=(84, 84))
+    parser.add_argument('--grid_size', type=lambda x: tuple(map(int, x.split(','))), default=(84, 84))
     parser.add_argument('--cell_size', type=int, default=10)
     parser.add_argument('--frame_size', type=int, default=4)
     parser.add_argument('--logging', type=str, default='tensorboard')
-    parser.add_argument('--reset_logging', type=bool, default=True)
     parser.add_argument('--reset_checkpoint', type=bool, default=False)
-    parser.add_argument('--tau', type=float, default=0.001)
+    parser.add_argument('--tau', type=float, default=0.01)
 
     args = parser.parse_args()
     return args
