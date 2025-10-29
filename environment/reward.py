@@ -1,7 +1,4 @@
 from collections import deque
-
-from sympy.physics.paulialgebra import epsilon
-
 from utils.direction import Direction
 from utils.utils import is_collision, is_position_valid, position_neighbor
 import numpy as np
@@ -89,9 +86,6 @@ class Reward:
         rw += self.dead(action, -(100 + 2.5 / (epsilon + 1e-4)))
         rw += self.reward_by_distance_delta(action, 2)
 
-        a = self.eaten(action, 100)
-        b = self.dead(action, -(100 + 2.5 / (epsilon + 1e-4)))
-        c = self.reward_by_distance_delta(action, 2)
         if a > 0:
             print(a, b, c, ' : ', a + b +c)
 
