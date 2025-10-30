@@ -9,9 +9,8 @@ import numpy as np
 
 from utils.direction import Direction
 from utils.utils import is_position_valid, is_collision
-from reward import Reward
+from environment.reward import Reward
 from utils.utils import get_args
-import cv2
 
 args = get_args()
 class Environment(gym.Env):
@@ -35,8 +34,6 @@ class Environment(gym.Env):
         if not self.snake.is_alive():
             self.done = True
         self.obs = self.get_obs()
-        print(reward_value)
-        self.render()
         return self.obs, reward_value, self.done, score
 
     def reset(self, seed=None, options=None):
@@ -52,7 +49,12 @@ class Environment(gym.Env):
     def get_obs(self):
         obs = np.zeros(self.grid_size, dtype=np.float32)
         snake_position = self.snake.position
-        obs[snake_position[:,0], snake_position[:,1]] = 1
+        try:
+            obs[snake_position[0][0], snake_position[0][1]]
+        except IndexError:
+            obs[snake_position[1:,0], snake_position[1:,1]] = 1
+        else:
+            obs[snake_position[:, 0], snake_position[:, 1]] = 1
         obs[self.food.position[0], self.food.position[1]] = -1
         return obs
 
@@ -121,7 +123,7 @@ class Food:
             np.random.randint(self.grid_size[1])
         ])
 
-
+# python -m environment.environment --grid_size 10,10
 if __name__ == '__main__':
     # test environment with action: 0(left) 1(straight) 2(right)
     env = Environment(args.grid_size, 1)
@@ -130,3 +132,4 @@ if __name__ == '__main__':
         while not env.done:
             action = int(input())
             env.step(action)
+            env.render()

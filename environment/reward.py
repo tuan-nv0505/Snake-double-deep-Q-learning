@@ -17,7 +17,7 @@ class Reward:
         snake_by_action = self.__snake_by_action(action)
         head, body = snake_by_action[0], snake_by_action[1:]
         if is_collision(head, body) or not is_position_valid(head, self.env.grid_size):
-            return -reward_value
+            return reward_value
         return 0
 
     def reward_by_distance_delta(self, action, reward_value):

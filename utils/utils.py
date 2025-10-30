@@ -9,7 +9,7 @@ def get_args():
     parser.add_argument('--epsilon_end', type=float, default=0.05)
     parser.add_argument('--epsilon_decay', type=float, default=0.995)
     parser.add_argument('--gamma', type=float, default=0.99)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--memory_replay', type=int, default=50000)
     parser.add_argument('--batch', type=int, default=32)
     parser.add_argument('--grid_size', type=lambda x: tuple(map(int, x.split(','))), default=(84, 84))

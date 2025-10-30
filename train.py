@@ -28,7 +28,6 @@ def select_action(state, agent, epsilon):
 
 def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    device = torch.device('cpu')
     env = Environment(args.grid_size, args.epsilon_start)
 
     if os.path.exists('checkpoint') and args.reset_checkpoint:
@@ -37,7 +36,7 @@ def train(args):
     policy_net = DeepQNetwork(3).to(device)
     if os.path.exists('checkpoint/snake_dqn.pth'):
         policy_net.load_state_dict(torch.load('checkpoint/snake_dqn.pth'))
-        print('Load file snake_dqn.pth successfully. Continue training.')
+        print('Load snake_dqn.pth successfully. Continue training.')
     else:
         print('Load file snake_dqn.pth failed.')
     target_net = DeepQNetwork(3).to(device)
