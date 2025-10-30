@@ -17,7 +17,7 @@ def get_args():
     parser.add_argument('--frame_size', type=int, default=4)
     parser.add_argument('--logging', type=str, default='tensorboard')
     parser.add_argument('--reset_checkpoint', type=bool, default=False)
-    parser.add_argument('--tau', type=float, default=0.01)
+    parser.add_argument('--tau', type=float, default=0.005)
 
     args = parser.parse_args()
     return args
