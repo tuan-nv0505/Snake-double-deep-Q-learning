@@ -15,7 +15,7 @@ import os
 import shutil
 from torch.utils.tensorboard import SummaryWriter
 
-
+torch.set_printoptions(threshold=torch.inf)
 def select_action(state, agent, epsilon):
     if np.random.rand() < epsilon:
         action = np.random.randint(3)

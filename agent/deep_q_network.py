@@ -4,11 +4,11 @@ class DeepQNetwork(nn.Module):
     def __init__(self, action_size):
         super().__init__()
         self.conv1 = nn.Sequential(
-            nn.Conv2d(4, 32, 8, 4),
+            nn.Conv2d(4, 32, 5, 2),
             nn.ReLU()
         )
         self.conv2 = nn.Sequential(
-            nn.Conv2d(32, 64, 4, 2),
+            nn.Conv2d(32, 64, 3, 2),
             nn.ReLU()
         )
         self.conv3 = nn.Sequential(

@@ -57,7 +57,6 @@ class Game:
             else:
                 frame = self.env.reset()
                 stack_frames = deque([torch.from_numpy(frame)] * args.frame_size, maxlen=args.frame_size)
-
                 while not self.env.done:
                     with torch.no_grad():
                         state = torch.stack(list(stack_frames))
