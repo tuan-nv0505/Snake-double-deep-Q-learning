@@ -9,7 +9,7 @@ import numpy as np
 
 from utils.direction import Direction
 from utils.utils import is_position_valid, is_collision
-from environment.reward import Reward
+from reward import Reward
 from utils.utils import get_args
 import cv2
 
@@ -20,7 +20,7 @@ class Environment(gym.Env):
         self.grid_size = grid_size
         self.epsilon = epsilon
         self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=0, high=255, shape=args.grid_size, dtype=np.uint8)
+        self.observation_space = spaces.Box(low=0, high=255, shape=args.grid_size, dtype=np.float32)
         self.snake = Snake(grid_size)
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
@@ -35,6 +35,8 @@ class Environment(gym.Env):
         if not self.snake.is_alive():
             self.done = True
         self.obs = self.get_obs()
+        print(reward_value)
+        self.render()
         return self.obs, reward_value, self.done, score
 
     def reset(self, seed=None, options=None):
@@ -48,14 +50,11 @@ class Environment(gym.Env):
         print(self.obs)
 
     def get_obs(self):
-        obs = np.zeros((*self.grid_size, 3), dtype=np.uint8)
-        if self.snake.is_alive():
-            obs[self.snake.head[0], self.snake.head[1], 0] = 255
-        for x, y in self.snake.position[1:]:
-            obs[x, y, 1] = 255
-        obs[self.food.position[0], self.food.position[1], 2] = 255
-        obs = cv2.cvtColor(obs, cv2.COLOR_BGR2GRAY)
-        return obs.astype(np.float32) / 255
+        obs = np.zeros(self.grid_size, dtype=np.float32)
+        snake_position = self.snake.position
+        obs[snake_position[:,0], snake_position[:,1]] = 1
+        obs[self.food.position[0], self.food.position[1]] = -1
+        return obs
 
 class Snake:
     def __init__(self, grid_size, position=None):
@@ -121,3 +120,13 @@ class Food:
             np.random.randint(self.grid_size[0]),
             np.random.randint(self.grid_size[1])
         ])
+
+
+if __name__ == '__main__':
+    # test environment with action: 0(left) 1(straight) 2(right)
+    env = Environment(args.grid_size, 1)
+    while True:
+        env.reset()
+        while not env.done:
+            action = int(input())
+            env.step(action)

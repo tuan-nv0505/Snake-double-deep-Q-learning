@@ -62,6 +62,7 @@ class Game:
                     with torch.no_grad():
                         state = torch.stack(list(stack_frames))
                         action = select_action(state, agent, 0)
+                        print(action)
                         next_frame = self.env.step(action)[0]
                         stack_frames.append(torch.from_numpy(next_frame))
                         self.draw()

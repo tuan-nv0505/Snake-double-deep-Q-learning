@@ -28,6 +28,7 @@ def select_action(state, agent, epsilon):
 
 def train(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cpu')
     env = Environment(args.grid_size, args.epsilon_start)
 
     if os.path.exists('checkpoint') and args.reset_checkpoint:
