@@ -13,6 +13,8 @@ from collections import deque
 import random
 import os
 import sys
+from torch.utils.tensorboard import SummaryWriter
+import shutil
 
 torch.set_printoptions(threshold=torch.inf)
 def select_action(state, agent, epsilon):
@@ -36,7 +38,9 @@ def train(args):
     memory_replay = deque(maxlen=50000)
     epsilon = args.epsilon_start
     loss_min = sys.float_info.max
+    writer = SummaryWriter(args.logging)
 
+    num_batches = 0
     for episode in range(args.episodes):
         env.reset()
         total_reward = 0
@@ -44,10 +48,10 @@ def train(args):
         memory_episode = []
 
         while not env.done:
-            state = torch.from_numpy(env.get_state())
+            state = torch.from_numpy(env.get_state()).to(device)
             action = select_action(state, policy_net, epsilon)
             next_state, reward, done, score = env.step(action, epsilon)
-            next_state = torch.from_numpy(next_state)
+            next_state = torch.from_numpy(next_state).to(device)
             memory_replay.append((state, action, reward, done, next_state))
             memory_episode.append((state, action, reward, done, next_state))
 
@@ -57,11 +61,11 @@ def train(args):
             if len(memory_replay) >= args.batch:
                 sample = random.sample(memory_replay, args.batch)
                 state_batch, action_batch, reward_batch, done_batch, next_state_batch = zip(*sample)
-                state_batch = torch.stack(state_batch).to(device)
+                state_batch = torch.stack(state_batch)
                 action_batch = torch.tensor(action_batch).to(device).unsqueeze(1)
                 reward_batch = torch.tensor(reward_batch).to(device).unsqueeze(1)
                 done_batch = torch.tensor(tuple(map(int, done_batch))).to(device).unsqueeze(1)
-                next_state_batch = torch.stack(next_state_batch).to(device)
+                next_state_batch = torch.stack(next_state_batch)
 
                 q_values = policy_net(state_batch).gather(1, action_batch)
                 with torch.no_grad():
@@ -77,12 +81,15 @@ def train(args):
                 loss.backward()
                 optimizer.step()
 
+                writer.add_scalar('Loss/Replay Buffer', loss.item(), num_batches)
+                num_batches += 1
+
         state_episode, action_episode, reward_episode, done_episode, next_state_episode = zip(*memory_episode)
-        state_episode = torch.stack(state_episode).to(device)
+        state_episode = torch.stack(state_episode)
         action_episode = torch.tensor(action_episode).to(device).unsqueeze(1)
         reward_episode = torch.tensor(reward_episode).to(device).unsqueeze(1)
         done_episode = torch.tensor(tuple(map(int, done_episode))).to(device).unsqueeze(1)
-        next_state_episode = torch.stack(next_state_episode).to(device)
+        next_state_episode = torch.stack(next_state_episode)
 
         with torch.no_grad():
             q_values = policy_net(state_episode).gather(1, action_episode)
@@ -107,6 +114,13 @@ def train(args):
             loss_min = loss.item()
             torch.save(policy_net.state_dict(), 'checkpoint/best_snake_dqn.pth')
 
+        writer.add_scalar('Episode/Reward', total_reward, episode)
+        writer.add_scalar('Episode/Score', total_score, episode)
+        writer.add_scalar('Episode/Epsilon', epsilon, episode)
+        writer.add_scalar('Loss/Episode', loss.item(), episode)
+
 if __name__ == '__main__':
+    if os.path.exists('tensorboard'):
+        shutil.rmtree('tensorboard')
     args = get_args()
     train(args)

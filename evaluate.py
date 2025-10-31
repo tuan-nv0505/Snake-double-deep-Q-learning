@@ -55,15 +55,12 @@ class Game:
                     self.env.step(action)
                     self.draw()
             else:
-                frame = self.env.reset()
-                stack_frames = deque([torch.from_numpy(frame)] * args.frame_size, maxlen=args.frame_size)
+                self.env.reset()
                 while not self.env.done:
                     with torch.no_grad():
-                        state = torch.stack(list(stack_frames))
+                        state = torch.from_numpy(self.env.get_state())
                         action = select_action(state, agent, 0)
-                        print(action)
-                        next_frame = self.env.step(action)[0]
-                        stack_frames.append(torch.from_numpy(next_frame))
+                        self.env.step(action, 0)
                         self.draw()
         pygame.quit()
         sys.exit()
@@ -103,12 +100,12 @@ class Game:
         self.screen.fill((0, 0, 0))
 
 if __name__ == '__main__':
-    path_checkpoint = 'checkpoint/snake_dqn.pth'
+    path_checkpoint = 'checkpoint/best_snake_dqn.pth'
     agent = None
     if os.path.exists(path_checkpoint):
         print('Load file snake_dqn.pth successfully. Start evaluating...')
-        agent = DeepQNetwork(3)
+        agent = DeepQNetwork()
         agent.load_state_dict(torch.load(path_checkpoint))
 
-    game = Game(fps=30, env=Environment(args.grid_size, 0))
+    game = Game(fps=30, env=Environment(args.grid_size))
     game.play(agent=agent)
