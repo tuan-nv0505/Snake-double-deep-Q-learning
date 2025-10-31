@@ -12,11 +12,9 @@ def get_args():
     parser.add_argument('--lr', type=float, default=0.001)
     parser.add_argument('--memory_replay', type=int, default=50000)
     parser.add_argument('--batch', type=int, default=32)
-    parser.add_argument('--grid_size', type=lambda x: tuple(map(int, x.split(','))), default=(42, 42))
-    parser.add_argument('--cell_size', type=int, default=20)
-    parser.add_argument('--frame_size', type=int, default=4)
+    parser.add_argument('--grid_size', type=lambda x: tuple(map(int, x.split(','))), default=(30, 46))
+    parser.add_argument('--cell_size', type=int, default=30)
     parser.add_argument('--logging', type=str, default='tensorboard')
-    parser.add_argument('--reset_checkpoint', type=bool, default=False)
     parser.add_argument('--tau', type=float, default=0.005)
 
     args = parser.parse_args()

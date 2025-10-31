@@ -1,37 +1,25 @@
 from torch import nn
 
 class DeepQNetwork(nn.Module):
-    def __init__(self, action_size):
+    def __init__(self):
         super().__init__()
-        self.conv1 = nn.Sequential(
-            nn.Conv2d(3, 16, 3, 1),
-            nn.ReLU()
-        )
-        self.conv2 = nn.Sequential(
-            nn.Conv2d(16, 32, 3, 1),
-            nn.ReLU()
-        )
-        self.conv3 = nn.Sequential(
-            nn.Conv2d(32, 64, 3, 2),
-            nn.ReLU()
-        )
-        self.conv4 = nn.Sequential(
-            nn.Conv2d(64, 64, 3, 2),
-            nn.ReLU()
-        )
-        self.fc = nn.Sequential(
-            nn.Linear(64 * 8 * 8, 512),
-            nn.ReLU(),
-            nn.Linear(512, action_size)
-        )
-        
+        self.fc1 = nn.Sequential(nn.Linear(8, 64), nn.ReLU())
+        self.fc2 = nn.Sequential(nn.Linear(64, 128), nn.ReLU())
+        self.fc3 = nn.Sequential(nn.Linear(128, 3))
+
+        self.__create_weights()
+
+    def __create_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
+                nn.init.uniform_(m.weight, -0.01, 0.01)
+                nn.init.constant_(m.bias, 0)
+
     def forward(self, input):
-        output = self.conv1(input)
-        output = self.conv2(output)
-        output = self.conv3(output)
-        output = self.conv4(output)
-        output = output.view(output.size(0), -1)
-        output = self.fc(output)
+        output = self.fc1(input)
+        output = self.fc2(output)
+        output = self.fc3(output)
 
         return output
+
 

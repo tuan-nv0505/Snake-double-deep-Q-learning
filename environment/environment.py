@@ -3,61 +3,56 @@ import sys
 ROOT_DIR = Path(__file__).resolve().parent.parent
 sys.path.append(str(ROOT_DIR))
 
-import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-
 from utils.direction import Direction
-from utils.utils import is_position_valid, is_collision
 from environment.reward import Reward
-from utils.utils import get_args
+from utils.utils import get_args, is_collision, is_position_valid, position_neighbor
 
 args = get_args()
-class Environment(gym.Env):
-    def __init__(self, grid_size, epsilon):
+class Environment:
+    def __init__(self, grid_size):
         super().__init__()
         self.grid_size = grid_size
-        self.epsilon = epsilon
-        self.action_space = spaces.Discrete(3)
-        self.observation_space = spaces.Box(low=0, high=255, shape=args.grid_size, dtype=np.float32)
         self.snake = Snake(grid_size)
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
-        self.obs = self.get_obs()
         self.done = False
 
-    def step(self, action):
+    def step(self, action, epsilon):
         reward = Reward(env=self)
-        reward_value = reward(action, self.epsilon)
+        reward_value = reward(action, epsilon)
         self.snake.update_direction(action)
         score = self.snake.move(self.food)
         if not self.snake.is_alive():
             self.done = True
-        self.obs = self.get_obs()
-        return self.obs, reward_value, self.done, score
+        return self.get_state(), reward_value, self.done, score
 
-    def reset(self, seed=None, options=None):
-        super().reset(seed=seed)
+    def reset(self):
         self.snake.reset()
         self.food.reset_position(invalid_position=self.snake.position)
         self.done = False
-        return self.get_obs()
 
-    def render(self):
-        print(self.obs)
+    def get_state(self):
+        pos_head = self.snake.head
+        pos_food = self.food.position
+        neighbors_head = position_neighbor(pos_head)
+        neighbors_head = neighbors_head[np.arange(4) != (self.snake.direction.value - 2 + 4) % 4]
 
-    def get_obs(self):
-        obs = np.zeros(self.grid_size, dtype=np.float32)
-        snake_position = self.snake.position
-        try:
-            obs[snake_position[0][0], snake_position[0][1]]
-        except IndexError:
-            obs[snake_position[1:,0], snake_position[1:,1]] = 1
-        else:
-            obs[snake_position[0][0], snake_position[0][1]] = 2
-            obs[snake_position[:, 0], snake_position[:, 1]] = 1
-        obs[self.food.position[0], self.food.position[1]] = -1
-        return obs
+        direction = self.snake.direction
+        food = (
+            int(pos_head[0] < pos_food[0]),
+            int(pos_head[1] < pos_head[1]),
+            int(pos_head[0] > pos_food[0]),
+            int(pos_head[1] > pos_food[1])
+        )
+        danger = (
+            int(is_position_valid(neighbors_head[0], self.grid_size) and not is_collision(neighbors_head[0], self.snake.position)),
+            int(is_position_valid(neighbors_head[1], self.grid_size) and not is_collision(neighbors_head[1], self.snake.position)),
+            int(is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
+        )
+
+        return np.array([direction.value, *food, *danger], dtype=np.float32)
+
 
 class Snake:
     def __init__(self, grid_size, position=None):
@@ -124,13 +119,3 @@ class Food:
             np.random.randint(self.grid_size[1])
         ])
 
-# python -m environment.environment --grid_size 10,10
-if __name__ == '__main__':
-    # test environment with action: 0(left) 1(straight) 2(right)
-    env = Environment(args.grid_size, 1)
-    while True:
-        env.reset()
-        while not env.done:
-            action = int(input())
-            env.step(action)
-            env.render()
