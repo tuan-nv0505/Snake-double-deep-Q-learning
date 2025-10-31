@@ -54,6 +54,7 @@ class Environment(gym.Env):
         except IndexError:
             obs[snake_position[1:,0], snake_position[1:,1]] = 1
         else:
+            obs[snake_position[0][0], snake_position[0][1]] = 2
             obs[snake_position[:, 0], snake_position[:, 1]] = 1
         obs[self.food.position[0], self.food.position[1]] = -1
         return obs

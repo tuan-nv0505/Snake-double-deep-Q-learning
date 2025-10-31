@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(ROOT_DIR))
 
@@ -55,9 +56,7 @@ def train(args):
 
     num_batches = 0
     for episode in range(args.episodes):
-        frame = env.reset()
-        stack_frames = deque([torch.from_numpy(frame).to(device)] * args.frame_size, maxlen=args.frame_size)
-        memory_episode = []
+        state = torch.tensor
 
         while not env.done:
             state = torch.stack(list(stack_frames))
@@ -86,16 +85,15 @@ def train(args):
                 with torch.no_grad():
                     next_action_batch = torch.argmax(policy_net(next_state_batch), dim=1, keepdim=True)
                     next_q_values = target_net(next_state_batch).gather(1, next_action_batch)
-                    targets = reward_batch + (1 - done_batch) * args.gamma * next_q_values
+                    targets = torch.tanh(reward_batch)+ (1 - done_batch) * args.gamma * next_q_values
+
+                    for t_param, p_param in zip(target_net.parameters(), policy_net.parameters()):
+                        t_param.data.copy_(t_param.data * (1.0 - args.tau) + p_param.data * args.tau)
 
                 loss = criterion(q_values, targets)
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-
-                with torch.no_grad():
-                    for t_param, p_param in zip(target_net.parameters(), policy_net.parameters()):
-                        t_param.data.copy_(t_param.data * args.tau + p_param.data * (1.0 - args.tau))
 
                 writer.add_scalar('Replay Memory/Loss', loss.item(), num_batches)
 
@@ -112,7 +110,7 @@ def train(args):
             q_values = policy_net(state).gather(1, action)
             next_action = torch.argmax(policy_net(next_state), dim=1, keepdim=True)
             next_q_values = target_net(next_state).gather(1, next_action)
-            targets = reward + (1 - done) * args.gamma * next_q_values
+            targets = torch.tanh(reward) + (1 - done) * args.gamma * next_q_values
             loss = criterion(q_values, targets)
 
         writer.add_scalar('Episode/Loss', loss.item(), episode)
