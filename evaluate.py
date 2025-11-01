@@ -1,5 +1,3 @@
-import os.path
-from collections import deque
 from pathlib import Path
 import sys
 ROOT_DIR = Path(__file__).resolve().parent
@@ -14,6 +12,7 @@ from train import select_action
 import numpy as np
 import torch
 import sys
+import os.path
 
 args = get_args()
 class Game:
@@ -52,13 +51,13 @@ class Game:
                     elif keys[pygame.K_RIGHT] and self.env.snake.direction != Direction.LEFT:
                         action = get_action(Direction.RIGHT, self.env.snake.direction)
 
-                    self.env.step(action)
+                    self.env.step(action, 0)
                     self.draw()
             else:
                 self.env.reset()
                 while not self.env.done:
                     with torch.no_grad():
-                        state = torch.from_numpy(self.env.get_state())
+                        state = torch.from_numpy(self.env.get_state_logic())
                         action = select_action(state, agent, 0)
                         self.env.step(action, 0)
                         self.draw()
@@ -68,9 +67,13 @@ class Game:
 
     def draw(self):
         # Draw snake
-        for element in self.env.snake.position:
+        for i, element in enumerate(self.env.snake.position):
             y, x = element * args.cell_size
-            pygame.draw.rect(self.screen, (255, 0, 0), (x, y, args.cell_size, args.cell_size))
+            if i == 0:
+                pygame.draw.rect(self.screen, (0, 113, 0), (x, y, args.cell_size, args.cell_size))
+                pygame.draw.rect(self.screen, (255, 255, 255), (x, y, args.cell_size, args.cell_size), 1)
+                continue
+            pygame.draw.rect(self.screen, (0, 255, 0), (x, y, args.cell_size, args.cell_size))
             pygame.draw.rect(self.screen, (255, 255, 255), (x, y, args.cell_size, args.cell_size), 1)
 
         # Draw food
@@ -92,7 +95,7 @@ class Game:
             self.scale_food = False
 
         # Draw score
-        text = self.font.render("SCORE: {:04d}".format(self.score), True, (0, 255, 0))
+        text = self.font.render("SCORE: {:04d}".format(self.score), True, (255, 255, 255))
         self.screen.blit(text, dest=(15, 15))
 
         pygame.display.flip()

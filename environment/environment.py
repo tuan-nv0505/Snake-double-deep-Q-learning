@@ -25,14 +25,32 @@ class Environment:
         score = self.snake.move(self.food)
         if not self.snake.is_alive():
             self.done = True
-        return self.get_state(), reward_value, self.done, score
+        return self.get_state_space(), self.get_state_logic(), reward_value, self.done, score
 
     def reset(self):
         self.snake.reset()
         self.food.reset_position(invalid_position=self.snake.position)
         self.done = False
 
-    def get_state(self):
+    def render(self):
+        obs = self.get_state_space()
+        print(obs[:,:,0] + obs[:,:,1] + obs[:,:,2])
+
+    def get_state_space(self):
+        observation = np.zeros((*self.grid_size, 3), dtype=np.uint8)
+        head = self.snake.head
+        try:
+            if head[0] < 0 or head[0] >= self.grid_size[0] or head[1] < 0 or head[1] >= self.grid_size[1]:
+                raise IndexError
+        except IndexError:
+            observation[self.snake.position[1:, 0], self.snake.position[1:, 1], 1] = 255
+        else:
+            observation[self.snake.position[:, 0], self.snake.position[:, 1], 1] = 255
+        observation[self.food.position[0], self.food.position[1], 2] = 255
+        return observation
+
+
+    def get_state_logic(self):
         pos_head = self.snake.head
         pos_food = self.food.position
         neighbors_head = position_neighbor(pos_head)
@@ -118,4 +136,3 @@ class Food:
             np.random.randint(self.grid_size[0]),
             np.random.randint(self.grid_size[1])
         ])
-
