@@ -23,7 +23,7 @@ def select_action(state_space, state_logic, agent, epsilon):
         return action
     else:
         with torch.no_grad():
-            q_values = agent(state_space.unsqueeze(1), state_logic.unsqueeze(1))
+            q_values = agent(state_space.unsqueeze(0), state_logic.unsqueeze(0))
             action = torch.argmax(q_values).item()
             return action
 
