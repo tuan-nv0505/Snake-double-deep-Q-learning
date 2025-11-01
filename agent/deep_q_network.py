@@ -3,9 +3,9 @@ from torch import nn
 class DeepQNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Sequential(nn.Linear(8, 64), nn.ReLU())
-        self.fc2 = nn.Sequential(nn.Linear(64, 128), nn.ReLU())
-        self.fc3 = nn.Sequential(nn.Linear(128, 3))
+        self.fc1 = nn.Sequential(nn.Linear(8, 32), nn.ReLU())
+        self.fc2 = nn.Sequential(nn.Linear(32, 64), nn.ReLU())
+        self.fc3 = nn.Sequential(nn.Linear(64, 3))
 
         self.__create_weights()
 

@@ -100,7 +100,7 @@ class Game:
         self.screen.fill((0, 0, 0))
 
 if __name__ == '__main__':
-    path_checkpoint = 'checkpoint/best_snake_dqn.pth'
+    path_checkpoint = 'checkpoint/snake_dqn.pth'
     agent = None
     if os.path.exists(path_checkpoint):
         print('Load file snake_dqn.pth successfully. Start evaluating...')

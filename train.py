@@ -12,7 +12,6 @@ import numpy as np
 from collections import deque
 import random
 import os
-import sys
 from torch.utils.tensorboard import SummaryWriter
 import shutil
 
@@ -37,7 +36,6 @@ def train(args):
     optimizer = torch.optim.Adam(policy_net.parameters(), lr=args.lr)
     memory_replay = deque(maxlen=50000)
     epsilon = args.epsilon_start
-    loss_min = sys.float_info.max
     writer = SummaryWriter(args.logging)
 
     num_batches = 0
@@ -71,7 +69,7 @@ def train(args):
                 with torch.no_grad():
                     next_action = torch.argmax(policy_net(next_state_batch), dim=1, keepdim=True)
                     next_q_values = target_net(next_state_batch).gather(1, next_action)
-                    q_target = reward_batch + (1 - done_batch) * args.gamma * next_q_values
+                    q_target = torch.tanh(reward_batch) + (1 - done_batch) * args.gamma * next_q_values
 
                     for t_param, p_param in zip(target_net.parameters(), policy_net.parameters()):
                         t_param.data.copy_((1 - args.tau) * t_param + args.tau * p_param)
@@ -95,7 +93,7 @@ def train(args):
             q_values = policy_net(state_episode).gather(1, action_episode)
             next_action = torch.argmax(policy_net(next_state_episode), dim=1, keepdim=True)
             next_q_values = target_net(next_state_episode).gather(1, next_action)
-            q_target = reward_episode + (1 - done_episode) * args.gamma * next_q_values
+            q_target = torch.tanh(reward_episode) + (1 - done_episode) * args.gamma * next_q_values
 
             loss = criterion(q_values, q_target)
 
@@ -109,10 +107,6 @@ def train(args):
         if episode % 10 == 0 and episode != 0:
             print('Save snake_dqn.pth.')
             torch.save(policy_net.state_dict(), 'checkpoint/snake_dqn.pth')
-        if loss.item() < loss_min:
-            print('Update best checkpoint.')
-            loss_min = loss.item()
-            torch.save(policy_net.state_dict(), 'checkpoint/best_snake_dqn.pth')
 
         writer.add_scalar('Episode/Reward', total_reward, episode)
         writer.add_scalar('Episode/Score', total_score, episode)
