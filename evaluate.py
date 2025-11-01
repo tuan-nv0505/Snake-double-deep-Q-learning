@@ -13,6 +13,7 @@ import numpy as np
 import torch
 import sys
 import os.path
+from torchvision.transforms import ToTensor
 
 args = get_args()
 class Game:
@@ -27,6 +28,7 @@ class Game:
         self.font = pygame.font.Font("assets/PressStart2P-Regular.ttf", 25)
         self.score = 0
         self.scale_food = False
+        self.transform = ToTensor()
 
     def play(self, agent=None):
         running = True
@@ -57,8 +59,9 @@ class Game:
                 self.env.reset()
                 while not self.env.done:
                     with torch.no_grad():
-                        state = torch.from_numpy(self.env.get_state_logic())
-                        action = select_action(state, agent, 0)
+                        state_space = self.transform(self.env.get_state_space())
+                        state_logic = torch.from_numpy(self.env.get_state_logic())
+                        action = select_action(state_space, state_logic, agent, 0)
                         self.env.step(action, 0)
                         self.draw()
         pygame.quit()
