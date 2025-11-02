@@ -14,9 +14,8 @@ import random
 import os
 from torch.utils.tensorboard import SummaryWriter
 import shutil
-from torchvision.transforms import ToTensor
 
-torch.set_printoptions(threshold=torch.inf)
+
 def select_action(state, agent, epsilon):
     if np.random.rand() < epsilon:
         action = np.random.randint(3)
@@ -38,7 +37,6 @@ def train(args):
     memory_replay = deque(maxlen=50000)
     epsilon = args.epsilon_start
     writer = SummaryWriter(args.logging)
-    transform = ToTensor()
 
     num_batches = 0
     for episode in range(args.episodes):

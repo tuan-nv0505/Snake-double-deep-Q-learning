@@ -17,10 +17,10 @@ class Environment:
         self.food = Food(grid_size)
         self.food.reset_position(invalid_position=self.snake.position)
         self.done = False
+        self.reward = Reward(env=self)
 
     def step(self, action, epsilon):
-        reward = Reward(env=self)
-        reward_value = reward(action, epsilon)
+        reward_value = self.reward(action, epsilon)
         self.snake.update_direction(action)
         score = self.snake.move(self.food)
         if not self.snake.is_alive():

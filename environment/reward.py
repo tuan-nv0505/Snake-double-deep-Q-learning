@@ -47,11 +47,6 @@ class Reward:
             return reward_value
         return 0
 
-    def moving_same_direction(self, action, reward_value):
-        if action == 1:
-            return reward_value
-        return -reward_value
-
     def move_not_safe(self, action, reward_value):
         snake_by_action = self.__snake_by_action(action)
         head = snake_by_action[0]
@@ -84,14 +79,14 @@ class Reward:
         rw = 0
         rw += self.eaten(action, 1)
         rw += self.dead(action, -1)
-        rw += self.reward_by_distance_delta(action, 0.05)
+        rw += self.reward_by_distance_delta(action, 0.04)
 
         if epsilon <= 0.3:
-            rw += self.avoiding_imminent_danger(action, 0.03)
+            rw += self.avoiding_imminent_danger(action, 0.04)
             rw += self.move_not_safe(action, -0.05)
 
         if epsilon <= 0.2:
-            rw += self.moving_same_direction(action, 0.02)
+            rw += 0.01 if action == 1 else -0.01
         rw -= 0.01
         return rw
 
