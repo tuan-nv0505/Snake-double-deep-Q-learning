@@ -6,7 +6,7 @@ sys.path.append(str(ROOT_DIR))
 import numpy as np
 from utils.direction import Direction
 from environment.reward import Reward
-from utils.utils import get_args, is_collision, is_position_valid, position_neighbor
+from utils.utils import get_args, is_collision, is_position_valid, position_neighbor, manhattan_distance
 
 args = get_args()
 class Environment:
@@ -44,11 +44,12 @@ class Environment:
             pos_head[1] / self.grid_size[1],
             pos_food[0] / self.grid_size[0],
             pos_food[1] / self.grid_size[1],
-            self.snake.direction.value,
-            self.snake.position.shape[0],
-            int(is_position_valid(neighbors_head[0], self.grid_size) and not is_collision(neighbors_head[0], self.snake.position)),
-            int(is_position_valid(neighbors_head[1], self.grid_size) and not is_collision(neighbors_head[1], self.snake.position)),
-            int(is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
+            manhattan_distance(pos_head, pos_food) / (sum(self.grid_size) - 2),
+            self.snake.position.shape[0] / (self.grid_size[0] * self.grid_size[1]),
+            self.snake.direction.value / 3.0,
+            (is_position_valid(neighbors_head[0], self.grid_size) and not is_collision(neighbors_head[0], self.snake.position)),
+            (is_position_valid(neighbors_head[1], self.grid_size) and not is_collision(neighbors_head[1], self.snake.position)),
+            (is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
         ], dtype=np.float32)
 
 

@@ -4,7 +4,7 @@ import torch
 class DeepQNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.fc1 = nn.Sequential(nn.Linear(9, 128), nn.ReLU())
+        self.fc1 = nn.Sequential(nn.Linear(5, 128), nn.ReLU())
         self.fc2 = nn.Sequential(nn.Linear(128, 256), nn.ReLU())
         self.fc3 = nn.Sequential(nn.Linear(256, 3))
 

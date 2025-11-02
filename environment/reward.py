@@ -1,6 +1,6 @@
 from collections import deque
 from utils.direction import Direction
-from utils.utils import is_collision, is_position_valid, position_neighbor
+from utils.utils import is_collision, is_position_valid, position_neighbor, manhattan_distance
 import numpy as np
 
 
@@ -24,8 +24,8 @@ class Reward:
         snake_by_action = self.__snake_by_action(action)
         old_head = self.env.snake.position[0]
         new_head = snake_by_action[0]
-        old_distance = abs(old_head[0] - self.env.food.position[0]) + abs(old_head[1] - self.env.food.position[1])
-        new_distance = abs(new_head[0] - self.env.food.position[0]) + abs(new_head[1] - self.env.food.position[1])
+        old_distance = manhattan_distance(old_head, self.env.food.position)
+        new_distance = manhattan_distance(new_head, self.env.food.position)
         if new_distance < old_distance:
             return reward_value
         return -reward_value

@@ -59,9 +59,8 @@ class Game:
                 self.env.reset()
                 while not self.env.done:
                     with torch.no_grad():
-                        state_space = self.transform(self.env.get_state_space())
-                        state_logic = torch.from_numpy(self.env.get_state())
-                        action = select_action(state_space, state_logic, agent, 0)
+                        state = torch.from_numpy(self.env.get_state())
+                        action = select_action(state, agent, 0)
                         self.env.step(action, 0)
                         self.draw()
         pygame.quit()

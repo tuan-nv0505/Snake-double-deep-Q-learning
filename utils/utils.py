@@ -37,3 +37,8 @@ def position_neighbor(position):
         position + [1, 0],
         position + [0, -1]
     ])
+
+def manhattan_distance(pos_1, pos_2):
+    dist_x = abs(pos_1[0] - pos_2[0])
+    dist_y = abs(pos_1[1] - pos_2[1])
+    return dist_x + dist_y
