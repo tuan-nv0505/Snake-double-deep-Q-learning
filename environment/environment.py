@@ -25,51 +25,31 @@ class Environment:
         score = self.snake.move(self.food)
         if not self.snake.is_alive():
             self.done = True
-        return self.get_state_space(), self.get_state_logic(), reward_value, self.done, score
+        return self.get_state(), reward_value, self.done, score
 
     def reset(self):
         self.snake.reset()
         self.food.reset_position(invalid_position=self.snake.position)
         self.done = False
 
-    def render(self):
-        obs = self.get_state_space()
-        print(obs[:,:,0] + obs[:,:,1] + obs[:,:,2])
 
-    def get_state_space(self):
-        observation = np.zeros((*self.grid_size, 3), dtype=np.uint8)
-        head = self.snake.head
-        try:
-            if head[0] < 0 or head[0] >= self.grid_size[0] or head[1] < 0 or head[1] >= self.grid_size[1]:
-                raise IndexError
-        except IndexError:
-            observation[self.snake.position[1:, 0], self.snake.position[1:, 1], 1] = 255
-        else:
-            observation[self.snake.position[:, 0], self.snake.position[:, 1], 1] = 255
-        observation[self.food.position[0], self.food.position[1], 2] = 255
-        return observation
-
-
-    def get_state_logic(self):
+    def get_state(self):
         pos_head = self.snake.head
         pos_food = self.food.position
         neighbors_head = position_neighbor(pos_head)
         neighbors_head = neighbors_head[np.arange(4) != (self.snake.direction.value - 2 + 4) % 4]
 
-        direction = self.snake.direction
-        food = (
-            int(pos_head[0] < pos_food[0]),
-            int(pos_head[1] < pos_food[1]),
-            int(pos_head[0] > pos_food[0]),
-            int(pos_head[1] > pos_food[1])
-        )
-        danger = (
+        return np.array([
+            pos_head[0] / self.grid_size[0],
+            pos_head[1] / self.grid_size[1],
+            pos_food[0] / self.grid_size[0],
+            pos_food[1] / self.grid_size[1],
+            self.snake.direction.value,
+            self.snake.position.shape[0],
             int(is_position_valid(neighbors_head[0], self.grid_size) and not is_collision(neighbors_head[0], self.snake.position)),
             int(is_position_valid(neighbors_head[1], self.grid_size) and not is_collision(neighbors_head[1], self.snake.position)),
             int(is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
-        )
-
-        return np.array([direction.value, self.snake.position.shape[0], *food, *danger], dtype=np.float32)
+        ], dtype=np.float32)
 
 
 class Snake:
