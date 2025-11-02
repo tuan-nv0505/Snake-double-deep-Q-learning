@@ -59,7 +59,7 @@ class Environment:
         direction = self.snake.direction
         food = (
             int(pos_head[0] < pos_food[0]),
-            int(pos_head[1] < pos_head[1]),
+            int(pos_head[1] < pos_food[1]),
             int(pos_head[0] > pos_food[0]),
             int(pos_head[1] > pos_food[1])
         )
@@ -69,7 +69,7 @@ class Environment:
             int(is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
         )
 
-        return np.array([direction.value, *food, *danger], dtype=np.float32)
+        return np.array([direction.value, self.snake.position.shape[0], *food, *danger], dtype=np.float32)
 
 
 class Snake:

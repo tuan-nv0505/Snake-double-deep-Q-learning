@@ -4,14 +4,16 @@ import torch
 class DeepQNetwork(nn.Module):
     def __init__(self):
         super().__init__()
-        self.cv1 = nn.Sequential(nn.Conv2d(3, 16, 3, 2), nn.ReLU())
-        self.cv2 = nn.Sequential(nn.Conv2d(16, 32, 3, 2), nn.ReLU())
-        self.cv3 = nn.Sequential(nn.Conv2d(32, 32, 3, 1), nn.ReLU())
+        self.cv1 = nn.Sequential(nn.Conv2d(3, 4, 3, 2), nn.ReLU())
+        self.cv2 = nn.Sequential(nn.Conv2d(4, 8, 3, 2), nn.ReLU())
+        self.cv3 = nn.Sequential(nn.Conv2d(8, 8, 3, 1), nn.ReLU())
+
+        self.fc_logic = nn.Linear(9, 128)
 
         self.fc = nn.Sequential(
-            nn.Linear(32 * 4 * 8 + 8, 256),
+            nn.Linear(8 * 4 * 8 + 128, 512),
             nn.ReLU(),
-            nn.Linear(256, 3)
+            nn.Linear(512, 3)
         )
 
         self.__create_weights()
@@ -25,7 +27,7 @@ class DeepQNetwork(nn.Module):
     def forward(self, state_space, state_logic):
         """
         :param state_space: (batch, 3, 30, 46)
-        :param state_logic: (batch, 8)
+        :param state_logic: (batch, 9)
         :return: Q_values (batch, 3)
         """
         output = self.cv1(state_space)
