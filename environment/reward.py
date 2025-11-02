@@ -82,13 +82,13 @@ class Reward:
 
     def __call__(self, action, epsilon):
         rw = 0
-        rw += self.eaten(action, 10)
-        rw += self.dead(action, -10)
+        rw += self.eaten(action, 1)
+        rw += self.dead(action, -1)
         rw += self.reward_by_distance_delta(action, 0.05)
 
         if epsilon <= 0.3:
-            rw += self.avoiding_imminent_danger(action, 0.03)
-            rw += self.move_not_safe(action, -0.3)
+            rw += self.avoiding_imminent_danger(action, 0.05)
+            rw += self.move_not_safe(action, -0.05)
 
         if epsilon <= 0.2:
             rw += self.moving_same_direction(action, 0.03)
