@@ -34,22 +34,27 @@ class Environment:
 
 
     def get_state(self):
-        pos_head = self.snake.head
-        pos_food = self.food.position
-        neighbors_head = position_neighbor(pos_head)
+        head = self.snake.head
+        food = self.food.position
+        direction = [0] * 4
+        direction[self.snake.direction.value] = 1
+        neighbors_head = position_neighbor(head)
         neighbors_head = neighbors_head[np.arange(4) != (self.snake.direction.value - 2 + 4) % 4]
 
         return np.array([
-            pos_head[0] / self.grid_size[0],
-            pos_head[1] / self.grid_size[1],
-            pos_food[0] / self.grid_size[0],
-            pos_food[1] / self.grid_size[1],
-            manhattan_distance(pos_head, pos_food) / (sum(self.grid_size) - 2),
-            self.snake.position.shape[0] / (self.grid_size[0] * self.grid_size[1]),
-            self.snake.direction.value / 3.0,
+            # Danger
             (is_position_valid(neighbors_head[0], self.grid_size) and not is_collision(neighbors_head[0], self.snake.position)),
             (is_position_valid(neighbors_head[1], self.grid_size) and not is_collision(neighbors_head[1], self.snake.position)),
-            (is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position))
+            (is_position_valid(neighbors_head[2], self.grid_size) and not is_collision(neighbors_head[2], self.snake.position)),
+
+            # Direction
+            *direction,
+
+            # Food location
+            food[1] < head[1],  # food left
+            food[1] > head[1],  # food right
+            food[0] < head[0],  # food up
+            food[0] > head[0]  # food down
         ], dtype=np.float32)
 
 
