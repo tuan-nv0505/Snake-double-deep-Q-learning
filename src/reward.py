@@ -1,6 +1,6 @@
 from collections import deque
-from utils.direction import Direction
-from utils.utils import is_collision, is_position_valid, position_neighbor, manhattan_distance
+from src.direction import Direction
+from src.utils import is_collision, is_position_valid, position_neighbor, manhattan_distance
 import numpy as np
 
 

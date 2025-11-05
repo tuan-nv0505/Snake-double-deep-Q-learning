@@ -1,12 +1,7 @@
-from pathlib import Path
-import sys
-ROOT_DIR = Path(__file__).resolve().parent.parent
-sys.path.append(str(ROOT_DIR))
-
 import numpy as np
-from utils.direction import Direction
-from environment.reward import Reward
-from utils.utils import get_args, is_collision, is_position_valid, position_neighbor, manhattan_distance
+from src.direction import Direction
+from src.reward import Reward
+from src.utils import get_args, is_collision, is_position_valid, position_neighbor
 
 args = get_args()
 class Environment:

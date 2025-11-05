@@ -3,9 +3,9 @@ import sys
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(ROOT_DIR))
 
-from environment.environment import Environment
-from agent.deep_q_network import DeepQNetwork
-from utils.utils import get_args
+from src.environment import Environment
+from src.deep_q_network import DeepQNetwork
+from src.utils import get_args
 
 import torch
 import numpy as np

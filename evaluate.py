@@ -3,17 +3,16 @@ import sys
 ROOT_DIR = Path(__file__).resolve().parent
 sys.path.append(str(ROOT_DIR))
 
-from utils.direction import Direction
-from agent.deep_q_network import DeepQNetwork
+from src.direction import Direction
+from src.deep_q_network import DeepQNetwork
 import pygame
-from utils.utils import get_args
-from environment.environment import Environment
+from src.utils import get_args
+from src.environment import Environment
 from train import select_action
 import torch
 import sys
 from torchvision.transforms import ToTensor
 import time
-from matplotlib import pyplot as plt
 
 args = get_args()
 class Game:
@@ -33,14 +32,8 @@ class Game:
         self.start = time.time()
         self.max_score = 0
 
-    def play(self, agent=None, epsilon=0.0, epsilon_decay=0.0):
+    def play(self, agent=None):
         running = True
-        epsilon = epsilon
-        scores = []
-        rewards = []
-        episodes = []
-
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9, 5))
         while running:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -73,40 +66,13 @@ class Game:
                 while not self.env.done:
                     with torch.no_grad():
                         state = torch.from_numpy(self.env.get_state())
-                        action = select_action(state, agent, epsilon)
+                        action = select_action(state, agent, 0)
                         _, reward, _, score = self.env.step(action, 0)
                         self.score += score
                         total_reward += reward
                         self.max_score = max(self.max_score, self.score)
                         self.draw()
                 self.episode += 1
-                episodes.append(self.episode)
-                scores.append(self.score)
-                rewards.append(total_reward)
-
-                ax1.clear()
-                ax1.plot(episodes, scores, label="Score", color='blue')
-                ax1.set_title("Score per Game")
-                ax1.set_xlabel("Game")
-                ax1.set_ylabel("Score")
-                ax1.legend()
-                # ax1.set_xticks(range(1, len(episodes) + 1))
-                # ax1.set_yticks(range(0, int(max(scores)) + 5))
-
-                ax2.clear()
-                ax2.plot(episodes, rewards, label="Total Reward", color='orange')
-                ax2.set_title("Reward per Game")
-                ax2.set_xlabel("Game")
-                ax2.set_ylabel("Reward")
-                ax2.legend()
-                # ax2.set_xticks(range(1, len(episodes) + 1))
-
-                plt.tight_layout()
-                plt.pause(0.01)
-            if epsilon < 0.05:
-                epsilon = 0
-            else:
-                epsilon = epsilon * epsilon_decay
         pygame.quit()
         sys.exit()
 
@@ -149,6 +115,6 @@ class Game:
 
 if __name__ == '__main__':
     agent = DeepQNetwork()
-    agent.load_state_dict(torch.load('checkpoint/snake_dqn.pth'))
-    game = Game(fps=0, env=Environment(args.grid_size))
-    game.play(agent=agent, epsilon=0.0, epsilon_decay=0.95)
+    agent.load_state_dict(torch.load('checkpoint/snake_dqn.pth', map_location=torch.device('cpu')))
+    game = Game(fps=30, env=Environment(args.grid_size))
+    game.play(agent=agent)
