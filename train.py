@@ -12,7 +12,6 @@ import numpy as np
 from collections import deque
 import random
 import os
-from torch.utils.tensorboard import SummaryWriter
 import shutil
 
 
@@ -36,7 +35,6 @@ def train(args):
     optimizer = torch.optim.Adam(policy_net.parameters(), lr=args.lr)
     memory_replay = deque(maxlen=50000)
     epsilon = args.epsilon_start
-    writer = SummaryWriter(args.logging)
 
     num_batches = 0
     for episode in range(args.episodes):
@@ -78,8 +76,6 @@ def train(args):
                 optimizer.zero_grad()
                 loss.backward()
                 optimizer.step()
-
-                writer.add_scalar('Loss/Replay Buffer', loss.item(), num_batches)
                 num_batches += 1
 
         state_episode, action_episode, reward_episode, done_episode, next_state_episode = zip(*memory_episode)
@@ -107,11 +103,6 @@ def train(args):
         if episode % 10 == 0 and episode != 0:
             print('Save snake_dqn.pth.')
             torch.save(policy_net.state_dict(), 'checkpoint/snake_dqn.pth')
-
-        writer.add_scalar('Episode/Reward', total_reward, episode)
-        writer.add_scalar('Episode/Score', total_score, episode)
-        writer.add_scalar('Episode/Epsilon', epsilon, episode)
-        writer.add_scalar('Loss/Episode', loss.item(), episode)
 
 if __name__ == '__main__':
     if os.path.exists('tensorboard'):
